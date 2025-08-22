@@ -1,8 +1,8 @@
 from tests.api.helpers import get_id
 
 class TestPost:
-    def test_create_movie(self, api_manager, authenticated_admin, movie_factory, movie_test_data):
-        post_data = movie_factory()
+    def test_create_movie(self, api_manager, authenticated_admin, created_movie, movie_test_data):
+        post_data = created_movie
 
         assert "id" in post_data
         assert post_data["name"] == movie_test_data["name"]

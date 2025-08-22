@@ -10,7 +10,7 @@ from api.api_manager import ApiManager
 
 faker = Faker()
 
-CREATED_MOVIES_IDS = []
+created_movie_ids = []
 
 @pytest.fixture(scope="function")
 def movie_test_data():
@@ -28,20 +28,20 @@ def movie_test_data():
     }
 
 @pytest.fixture(scope="function")
-def movie_factory(api_manager, authenticated_admin, movie_test_data):
-    created_ids = []
+def created_movie(api_manager, authenticated_admin, movie_test_data):
+    payload = movie_test_data
+    resp = api_manager.movies_api.create_movie(payload)
+    data = resp.json()
+    created_movie_ids.append(data["id"])
+    return data
 
-    def _create():
-        payload = movie_test_data
-        resp = api_manager.movies_api.create_movie(payload)
-        data = resp.json()
-        created_ids.append(data["id"])
-        return data
 
-    yield _create
+@pytest.fixture(scope="session", autouse=True)
+def clean_up_created_movies(api_manager):
+    yield
 
-    if "authorization" not in api_manager.session.headers:
-        api_manager.auth_api.authenticate(ADMIN_CREDS)
+    api_manager.auth_api.authenticate(ADMIN_CREDS)
 
-    for movie_id in created_ids:
-        api_manager.movies_api.delete_movie(movie_id, expected_status=(200, 400, 404))
+    for movie_id in created_movie_ids:
+        api_manager.movies_api.clean_up_movie(movie_id)
+

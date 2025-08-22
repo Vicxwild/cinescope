@@ -4,8 +4,8 @@ from faker import Faker
 faker = Faker()
 
 class TestGetId:
-    def test_get_movie(self, api_manager, movie_factory, movie_test_data):
-        movie_id = get_id(movie_factory())
+    def test_get_movie(self, api_manager, created_movie, movie_test_data):
+        movie_id = get_id(created_movie)
 
         get_resp = api_manager.movies_api.get_movie(movie_id)
         get_data = get_resp.json()

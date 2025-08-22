@@ -8,6 +8,7 @@ from api.api_manager import ApiManager
 
 faker = Faker()
 
+created_user_ids = []
 
 @pytest.fixture(scope="function")
 def test_user():
@@ -28,38 +29,26 @@ def test_user():
 
 
 @pytest.fixture(scope="function")
-def registered_user_with_delete(api_manager, test_user):
-    """
-    Фикстура для регистрации и получения данных зарегистрированного пользователя.
-    """
+def registered_user(api_manager, test_user):
     response = api_manager.auth_api.register_user(test_user)
     response_data = response.json()
     registered_user = test_user.copy()
     registered_user["id"] = response_data["id"]
 
-    yield registered_user
+    created_user_ids.append(registered_user["id"])
 
-    api_manager.user_api.clean_up_user(registered_user["id"])
+    return registered_user
 
 
-@pytest.fixture(scope="function")
-def registered_user(api_manager, test_user):
-    reg_user_ids = []
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_created_users(api_manager):
+    yield
 
-    def _create():
-        response = api_manager.auth_api.register_user(test_user)
-        response_data = response.json()
-        registered_user = test_user.copy()
-        registered_user["id"] = response_data["id"]
-        return registered_user
+    api_manager.auth_api.authenticate(ADMIN_CREDS)
 
-    yield _create()
+    for user_id in created_user_ids:
+        api_manager.user_api.clean_up_user(user_id)
 
-    if "authorization" not in api_manager.session.headers:
-        api_manager.auth_api.authenticate(ADMIN_CREDS)
-
-    for user_id in reg_user_ids:
-        api_manager.user_api.clean_up_user(user_id, expected_status=(200, 400, 404))
 
 @pytest.fixture(scope="function")
 def authenticated_admin(api_manager):

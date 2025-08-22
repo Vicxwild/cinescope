@@ -62,3 +62,6 @@ class MoviesAPI(CustomRequester):
             endpoint= f"{MOVIES}/{movie_id}",
             expected_status=expected_status
         )
+
+    def clean_up_movie(self, movie_id, expected_status=(200, 401, 404)):
+        self.delete_movie(movie_id, expected_status=expected_status)

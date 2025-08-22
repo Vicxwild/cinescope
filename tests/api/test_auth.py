@@ -1,12 +1,8 @@
 from utils.data_generator import DataGenerator
 
 class TestAuth:
-    def test_register_user(self, api_manager, test_user):
-        """
-        Тест на регистрацию пользователя.
-        """
-        response = api_manager.auth_api.register_user(test_user)
-        response_data = response.json()
+    def test_register_user(self, registered_user, test_user):
+        response_data = registered_user
 
         assert response_data["email"] == test_user["email"], "Email не совпадает"
         assert "id" in response_data, "ID пользователя отсутствует в ответе"
