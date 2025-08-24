@@ -5,14 +5,14 @@ from tests.api.helpers import get_id
 faker = Faker()
 
 class TestPatch:
-    def test_update_movie(self, api_manager, authenticated_admin, created_movie, movie_test_data):
+    def test_update_movie(self, super_admin, created_movie, movie_test_data):
         movie_id = get_id(created_movie)
         updating_data=  {
             "name": DataGenerator.generate_random_film_title(),
             "price": faker.random_int(min=1000, max=1200)
         }
 
-        patch_resp = api_manager.movies_api.update_movie(movie_id, updating_data)
+        patch_resp = super_admin.api_manager.movies_api.update_movie(movie_id, updating_data)
         patch_data = patch_resp.json()
 
         assert patch_resp.status_code == 200
@@ -22,7 +22,7 @@ class TestPatch:
         assert patch_data["description"] == movie_test_data["description"]
         assert patch_data["genreId"] == movie_test_data["genreId"]
 
-        get_resp = api_manager.movies_api.get_movie(movie_id)
+        get_resp = super_admin.api_manager.movies_api.get_movie(movie_id)
         get_data = get_resp.json()
 
         assert get_data["id"] == movie_id
@@ -31,10 +31,10 @@ class TestPatch:
         assert get_data["description"] == movie_test_data["description"]
         assert get_data["genreId"] == movie_test_data["genreId"]
         
-    def test_negative_with_empty_name(self, api_manager, authenticated_admin, created_movie, movie_test_data):
+    def test_negative_with_empty_name(self, super_admin, created_movie, movie_test_data):
         movie_id = get_id(created_movie)
 
-        get_resp = api_manager.movies_api.get_movie(movie_id)
+        get_resp = super_admin.api_manager.movies_api.get_movie(movie_id)
         get_data = get_resp.json()
 
         # фильм существует
@@ -46,41 +46,50 @@ class TestPatch:
 
         # по неизвестным мне причинам бекенд отвечает 404 - фильм не найден, хотя должен отдавать 400
         updating_data =  {"name": ""}
-        patch_resp = api_manager.movies_api.update_movie(movie_id, updating_data, expected_status=(400, 404))
+        patch_resp = super_admin.api_manager.movies_api.update_movie(movie_id, updating_data, expected_status=(400, 404))
         patch_data = patch_resp.json()
 
         assert patch_resp.status_code in (400, 404)
         assert "message" in patch_data
 
-    def test_negative_with_negative_price(self, api_manager, authenticated_admin, created_movie, movie_test_data):
+    def test_negative_with_negative_price(self, super_admin, created_movie, movie_test_data):
         movie_id = get_id(created_movie)
 
         updating_data = {"price": faker.random_int(min=-1000, max=-100)}
 
-        patch_resp = api_manager.movies_api.update_movie(movie_id, updating_data, expected_status=400)
+        patch_resp = super_admin.api_manager.movies_api.update_movie(movie_id, updating_data, expected_status=400)
         patch_data = patch_resp.json()
 
         assert patch_resp.status_code == 400
         assert "message" in patch_data
 
-    def test_negative_with_numeric_description(self, api_manager, authenticated_admin, created_movie, movie_test_data):
+    def test_negative_with_numeric_description(self, super_admin, created_movie, movie_test_data):
         movie_id = get_id(created_movie)
 
         updating_data = {"description": faker.random_int(min=10, max=20)}
 
-        patch_resp = api_manager.movies_api.update_movie(movie_id, updating_data, expected_status=400)
+        patch_resp = super_admin.api_manager.movies_api.update_movie(movie_id, updating_data, expected_status=400)
         patch_data = patch_resp.json()
 
         assert patch_resp.status_code == 400
         assert "message" in patch_data
 
-    def test_negative_without_auth(self, api_manager, created_movie):
+    def test_negative_without_auth(self, unauthenticated_user, created_movie):
         movie_id = get_id(created_movie)
 
         updating_data=  {"name": "title", "price": 100 }
-        api_manager.auth_api.unauthorize()
-        patch_resp = api_manager.movies_api.update_movie(movie_id, updating_data, expected_status=401)
+        patch_resp = unauthenticated_user.api_manager.movies_api.update_movie(movie_id, updating_data, expected_status=401)
         patch_data = patch_resp.json()
 
         assert patch_resp.status_code == 401
+        assert "message" in patch_data
+
+    def test_negative_create_without_permission(self, common_user, created_movie):
+        movie_id = get_id(created_movie)
+
+        updating_data = {"name": "title", "price": 100 }
+        patch_resp = common_user.api_manager.movies_api.update_movie(movie_id, updating_data, expected_status=403)
+        patch_data = patch_resp.json()
+
+        assert patch_resp.status_code == 403
         assert "message" in patch_data

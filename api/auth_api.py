@@ -1,8 +1,10 @@
-from constants import REGISTER_ENDPOINT, LOGIN_ENDPOINT, BASE_URL
+from constants.constants import REGISTER_ENDPOINT, LOGIN_ENDPOINT, BASE_URL
 from custom_requester.custom_requester import CustomRequester
 
 class AuthAPI(CustomRequester):
     # Клас для работы с аутентификацией
+
+    AUTHORIZATION_HEADER = "authorization"
 
     def __init__(self, session):
         super().__init__(session=session, base_url=BASE_URL)
@@ -25,8 +27,8 @@ class AuthAPI(CustomRequester):
 
     def authenticate(self, user_creds):
         login_data = {
-            "email": user_creds["email"],
-            "password": user_creds["password"]
+            "email": user_creds[0],
+            "password": user_creds[1]
         }
 
         response = self.login_user(login_data)
@@ -35,10 +37,10 @@ class AuthAPI(CustomRequester):
             raise KeyError("access token missing")
 
         token = response_data["accessToken"]
-        self._update_session_headers(**{"authorization": "Bearer " + token})
+        self._update_session_headers(**{self.AUTHORIZATION_HEADER: "Bearer " + token})
 
         return response
 
     def unauthorize(self):
-        self._delete_session_headers("authorization")
-
+        if self.AUTHORIZATION_HEADER in self.session.headers:
+            self._delete_session_headers(self.AUTHORIZATION_HEADER)
