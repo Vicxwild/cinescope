@@ -31,3 +31,4 @@ class TestDelete:
         movie_id = faker.random_int(min= 1_000_000_000, max=9_000_000_000)
         delete_resp = super_admin.api_manager.movies_api.delete_movie(movie_id, expected_status=404)
         assert delete_resp.status_code == 404
+bla
