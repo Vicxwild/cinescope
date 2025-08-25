@@ -35,6 +35,7 @@ def created_movie(super_admin, movie_test_data):
 def clean_up_created_movies(super_admin):
     yield
 
-    for movie_id in created_movie_ids:
-        super_admin.api_manager.movies_api.clean_up_movie(movie_id)
+    if created_movie_ids:
+        for movie_id in created_movie_ids:
+            super_admin.api_manager.movies_api.clean_up_movie(movie_id)
 

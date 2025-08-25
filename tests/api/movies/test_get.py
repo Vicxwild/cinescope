@@ -1,6 +1,8 @@
 import random
 from faker import Faker
 faker = Faker()
+import pytest
+
 
 DEFAULT_PAGE_SIZE = 10
 DEFAULT_PAGE = 1
@@ -32,6 +34,27 @@ class TestGet:
             assert 100 <= movie["price"] <= 500
             assert movie["location"] == "MSK"
             assert movie["published"] is True
+
+    @pytest.mark.parametrize("min_max_prices,location,genre_id", [
+        ((1, 1000), "MSK", 1),
+        ((1, 1000), "SPB", 2),
+        ((1, 1000), "MSK", 3)
+    ], ids=["MSK 1", "SPB 2", "SPB 3"])
+    def test_filters(self, min_max_prices, location, genre_id, unauthenticated_user):
+        get_resp = unauthenticated_user.api_manager.movies_api.get_movies(
+            min_price=min_max_prices[0],
+            max_price=min_max_prices[1],
+            locations=[location],
+            genre_id=genre_id
+        )
+        get_data = get_resp.json()
+
+        assert get_resp.status_code == 200
+
+        for movie in get_data["movies"]:
+            assert min_max_prices[0] <= movie["price"] <= min_max_prices[1]
+            assert movie["location"] == location
+            assert movie["genreId"] == genre_id
 
     def test_with_page(self, unauthenticated_user, created_movie):
         random_page = faker.random_int(min=2, max=10)

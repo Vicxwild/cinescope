@@ -1,8 +1,6 @@
 from faker import Faker
 import pytest
 import requests
-from constants.constants import BASE_URL, SUPER_ADMIN_USERNAME, SUPER_ADMIN_PASSWORD
-from custom_requester.custom_requester import CustomRequester
 from utils.data_generator import DataGenerator
 from api.api_manager import ApiManager
 from resources.user_creds import SuperAdminCreds
@@ -57,8 +55,9 @@ def registered_user(unauthenticated_user, test_user):
 def cleanup_created_users(super_admin):
     yield
 
-    for user_id in created_user_ids:
-        super_admin.api_manager.user_api.clean_up_user(user_id)
+    if created_user_ids:
+        for user_id in created_user_ids:
+            super_admin.api_manager.user_api.clean_up_user(user_id)
 
 
 @pytest.fixture(scope="session")
