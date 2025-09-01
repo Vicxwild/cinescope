@@ -1,8 +1,10 @@
 from tests.api.helpers import get_id
 from faker import Faker
+import pytest
 
 faker = Faker()
 
+@pytest.mark.api
 class TestGetId:
     def test_get_movie(self, unauthenticated_user, created_movie, movie_test_data):
         movie_id = get_id(created_movie)

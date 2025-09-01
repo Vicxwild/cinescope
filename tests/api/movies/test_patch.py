@@ -1,9 +1,11 @@
 from utils.data_generator import DataGenerator
 from faker import Faker
 from tests.api.helpers import get_id
+import pytest
 
 faker = Faker()
 
+@pytest.mark.api
 class TestPatch:
     def test_update_movie(self, super_admin, created_movie, movie_test_data):
         movie_id = get_id(created_movie)
@@ -84,6 +86,7 @@ class TestPatch:
         assert patch_resp.status_code == 401
         assert "message" in patch_data
 
+    @pytest.mark.slow
     def test_negative_create_without_permission(self, common_user, created_movie):
         movie_id = get_id(created_movie)
 

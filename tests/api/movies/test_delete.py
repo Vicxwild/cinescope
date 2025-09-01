@@ -4,6 +4,8 @@ import pytest
 
 faker = Faker()
 
+@pytest.mark.api
+@pytest.mark.slow
 class TestDelete:
     def test_delete_movie(self, super_admin, created_movie):
         movie_id = get_id(created_movie)
@@ -14,6 +16,7 @@ class TestDelete:
         get_resp = super_admin.api_manager.movies_api.get_movie(movie_id, expected_status=404)
         assert get_resp.status_code == 404
 
+    @pytest.mark.slow
     @pytest.mark.parametrize("user_fixture_name,status_code", [
         ("super_admin", 200),
         ("admin", 403),
@@ -31,4 +34,3 @@ class TestDelete:
         movie_id = faker.random_int(min= 1_000_000_000, max=9_000_000_000)
         delete_resp = super_admin.api_manager.movies_api.delete_movie(movie_id, expected_status=404)
         assert delete_resp.status_code == 404
-bla

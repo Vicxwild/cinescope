@@ -7,6 +7,7 @@ import pytest
 DEFAULT_PAGE_SIZE = 10
 DEFAULT_PAGE = 1
 
+@pytest.mark.api
 class TestGet:
     def test_get_movie(self, unauthenticated_user, created_movie):
         get_resp = unauthenticated_user.api_manager.movies_api.get_movies()

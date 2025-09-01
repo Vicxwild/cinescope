@@ -1,5 +1,7 @@
 from tests.api.helpers import get_id
+import pytest
 
+@pytest.mark.api
 class TestPost:
     def test_create_movie(self, super_admin, created_movie, movie_test_data):
         post_data = created_movie

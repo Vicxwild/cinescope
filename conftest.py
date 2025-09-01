@@ -6,6 +6,7 @@ from api.api_manager import ApiManager
 from resources.user_creds import SuperAdminCreds
 from entities.user import User
 from constants.roles import Roles
+from models.base_models import TestUser
 
 faker = Faker()
 
@@ -16,37 +17,37 @@ def test_user():
     """
     Генерация случайного пользователя для тестов.
     """
-    random_email = DataGenerator.generate_random_email()
-    random_name = DataGenerator.generate_random_name()
     random_password = DataGenerator.generate_random_password()
 
     return {
-        "email": random_email,
-        "fullName": random_name,
+        "email": DataGenerator.generate_random_email(),
+        "fullName": DataGenerator.generate_random_name(),
         "password": random_password,
         "passwordRepeat": random_password,
-        "roles": [Roles.USER.value]
+        "roles": [Roles.USER]
     }
 
+@pytest.fixture(scope="function")
+def registration_user_data(test_user: dict) -> TestUser:
+    return TestUser(**test_user)
 
 @pytest.fixture(scope="function")
-def creation_user_data(test_user):
+def creation_user_data(test_user: dict) -> TestUser:
     updated_data = test_user.copy()
     updated_data.update({
         "verified": True,
         "banned": False
     })
-    return updated_data
 
+    return TestUser(**updated_data)
 
 @pytest.fixture(scope="function")
-def registered_user(unauthenticated_user, test_user):
-    response = unauthenticated_user.api_manager.auth_api.register_user(test_user)
+def registered_user(unauthenticated_user, registration_user_data: TestUser) -> TestUser:
+    response = unauthenticated_user.api_manager.auth_api.register_user(registration_user_data)
     response_data = response.json()
-    registered_user = test_user.copy()
-    registered_user["id"] = response_data["id"]
 
-    created_user_ids.append(registered_user["id"])
+    registered_user = registration_user_data.model_copy(update={"id": response_data["id"]})
+    created_user_ids.append(registered_user.id)
 
     return registered_user
 
@@ -93,8 +94,8 @@ def common_user(user_session, super_admin, creation_user_data):
     new_session = user_session()
 
     common_user = User(
-        creation_user_data["email"],
-        creation_user_data["password"],
+        creation_user_data.email,
+        creation_user_data.password,
         list(Roles.USER.value),
         new_session
     )
