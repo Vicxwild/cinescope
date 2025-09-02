@@ -1,9 +1,12 @@
 from faker import Faker
 import pytest
 import requests
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from utils.data_generator import DataGenerator
 from api.api_manager import ApiManager
 from resources.user_creds import SuperAdminCreds
+from resources.db_creds import DBCreds
 from entities.user import User
 from constants.roles import Roles
 from models.base_models import TestUser
@@ -146,3 +149,16 @@ def admin(user_session, super_admin):
     super_admin.api_manager.user_api.update_user(admin_data["id"], {"roles": [Roles.ADMIN.value]})
     admin.api_manager.auth_api.authenticate(admin.creds)
     return admin
+
+# Создаем движок (engine) для подключения к базе данных
+engine = create_engine(
+    f"postgresql+psycopg2://{DBCreds.USERNAME}:{DBCreds.PASSWORD}"
+    f"@{DBCreds.HOST}:{DBCreds.PORT}/{DBCreds.NAME}"
+)
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
+@pytest.fixture(scope="module")
+def db_session():
+    db_session = SessionLocal()
+    yield db_session
+    db_session.close()

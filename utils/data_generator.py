@@ -46,3 +46,7 @@ class DataGenerator:
     @staticmethod
     def generate_random_film_description():
         return faker.text(max_nb_chars=50)
+
+    @staticmethod
+    def generate_random_str(chars: int):
+        return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(chars))
