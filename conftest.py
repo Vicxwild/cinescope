@@ -1,3 +1,5 @@
+import time
+
 from faker import Faker
 import pytest
 import requests
@@ -162,3 +164,8 @@ def db_session():
     db_session = SessionLocal()
     yield db_session
     db_session.close()
+
+@pytest.fixture()
+def delay_between_retries():
+    time.sleep(2)
+    yield

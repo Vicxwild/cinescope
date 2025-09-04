@@ -1,56 +1,81 @@
 from db_requester.models import AccountTransactionTemplate
 from utils.data_generator import DataGenerator
 import pytest
+import allure
+import random
 
+@allure.epic("Тестирование транзакций")
+@allure.feature("Тестирование транзанкций между счетами")
 class TestOtherAPI:
+    @allure.story("Корректность перевода денег между счетами")
+    @allure.description("""
+    Этот тест проверяет корректность перевода денег между двумя счетами.
+    Шаги:
+    1. Создание двух счетов: Stan и Bob.
+    2. Перевод 200 единиц от Stan к Bob.
+    3. Проверка изменения балансов.
+    4. Очистка тестовых данных.
+    """)
+    @allure.severity(allure.severity_level.CRITICAL)
+    @allure.label("qa_name", "Ivan Petrovac")
+    @allure.title("Тест перевода денег между счетами - 200 рублей")
     def test_accounts_transaction_template(self, db_session):
-        stan = AccountTransactionTemplate(user=f"Stan_{DataGenerator.generate_random_str(10)}", balance=1000)
-        bob = AccountTransactionTemplate(user=f"Bob_{DataGenerator.generate_random_str(10)}", balance=500)
+        with allure.step("Создание тестовых данных в базе данных: счета Stan и Bob"):
+            stan = AccountTransactionTemplate(user=f"Stan_{DataGenerator.generate_random_str(10)}", balance=1000)
+            bob = AccountTransactionTemplate(user=f"Bob_{DataGenerator.generate_random_str(10)}", balance=500)
 
-        # Добавляем записи в сессию
-        db_session.add_all([stan, bob])
-        db_session.commit()
+            # Добавляем записи в сессию
+            db_session.add_all([stan, bob])
+            db_session.commit()
 
-        def transfer_money(session, from_account, to_account, amount):
-            # пример функции выполняющей транзакцию
-            # представим что она написана на стороне тестируемого сервиса
-            # и вызывая метод transfer_money, мы какбудтобы делем запрос в api_manager.movies_api.transfer_money
-            """
-            Переводит деньги с одного счета на другой.
-            :param session: Сессия SQLAlchemy.
-            :param from_account_id: ID счета, с которого списываются деньги.
-            :param to_account_id: ID счета, на который зачисляются деньги.
-            :param amount: Сумма перевода.
-            """
-            # Получаем счета
-            from_account = session.query(AccountTransactionTemplate).filter(AccountTransactionTemplate.user == from_account.user).first()
-            to_account = session.query(AccountTransactionTemplate).filter(AccountTransactionTemplate.user == to_account.user).first()
+        @allure.step("Функция перевода денег: transfer_money")
+        @allure.description( """
+            функция выполняющая транзакцию, имитация вызова функции на стороне тестируемого сервиса
+            и вызывая метод transfer_money, мы как будто бы делаем запрос в api_manager.movies_api.transfer_money
+            """)
+        def transfer_money(session, from_account, to_account, amount: int):
+            with allure.step("Получаем счета"):
+                from_account = session.query(AccountTransactionTemplate).filter_by(user=from_account).one()
+                to_account = session.query(AccountTransactionTemplate).filter_by(user=to_account).one()
 
-            if from_account.balance < amount:
-                raise ValueError("Недостаточно средств на счете")
+            with allure.step("Проверяем, что на счете достаточно средств"):
+                if from_account.balance < amount:
+                    raise ValueError("Недостаточно средств на счете")
 
-            # Выполняем перевод
-            from_account.balance -= amount
-            to_account.balance += amount
-            # Сохраняем изменения
-            session.commit()
+            with allure.step("Выполняем перевод"):
+                from_account.balance -= amount
+                to_account.balance += amount
 
-        assert stan.balance == 1000
-        assert bob.balance == 500
+            with allure.step("Сохраняем изменения"):
+                session.commit()
 
-        # Проверяет, что произошла ожидаемая ошибка
-        with pytest.raises(ValueError, match="Недостаточно средств на счете"):
-            transfer_money(db_session, bob, stan, 600)
+        with allure.step("Проверяем начальные балансы"):
+            assert stan.balance == 1000
+            assert bob.balance == 500
 
-        # Откатывает изменения в БД и восстанавливает рабочее состояние сессии после ошибки
-        db_session.rollback()
+        try:
+            with allure.step("Выполняем перевод 200 единиц от stan к bob"):
+                transfer_money(db_session, from_account=stan.user, to_account=bob.user, amount=200)
 
-        stan_from_db = db_session.query(AccountTransactionTemplate).filter(AccountTransactionTemplate.user == stan.user).first()
-        bob_from_db = db_session.query(AccountTransactionTemplate).filter(AccountTransactionTemplate.user == bob.user).first()
+            with allure.step("Проверяем, что балансы изменились"):
+                assert stan.balance == 800
+                assert bob.balance == 700
 
-        assert stan_from_db.balance == 1000
-        assert bob_from_db.balance == 500
+        except Exception as e:
+            with allure.step("ОШИБКА откаты транзакции"):
+                db_session.rollback()
 
-        db_session.delete(stan)
-        db_session.delete(bob)
-        db_session.commit()
+            pytest.fail(f"Ошибка при переводе денег: {e}")
+
+        finally:
+            with allure.step("Удаляем данные для тестирования из базы"):
+                db_session.delete(stan)
+                db_session.delete(bob)
+                db_session.commit()
+
+@allure.title("Test with retries")
+@pytest.mark.flaky(reruns=3)
+def test_with_retries(delay_between_retries):
+    with allure.step("Шаг 1: Проверка случайного значения"):
+        res = random.choice([True, False])
+        assert res, "Тест упал, потому что результат False"
