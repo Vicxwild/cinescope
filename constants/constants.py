@@ -7,11 +7,11 @@ HEADERS = {
 LOGIN_ENDPOINT = "/login"
 REGISTER_ENDPOINT = "/register"
 
-ADMIN_CREDS = {
-    "email": "api1@gmail.com",
-    "password": "asdqwe123Q"
-}
-
 # movies endpoints
 CINESCOPE_URL="https://api.dev-cinescope.coconutqa.ru"
 MOVIES = "/movies"
+
+# logger colors
+GREEN = '\033[32m'
+RED = '\033[31m'
+RESET = '\033[0m'

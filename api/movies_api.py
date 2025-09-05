@@ -1,4 +1,4 @@
-from constants import CINESCOPE_URL, MOVIES
+from constants.constants import CINESCOPE_URL, MOVIES
 from custom_requester.custom_requester import CustomRequester
 
 class MoviesAPI(CustomRequester):

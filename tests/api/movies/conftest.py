@@ -1,12 +1,7 @@
 import random
-
 from faker import Faker
 import pytest
-import requests
-from constants import BASE_URL, REGISTER_ENDPOINT, LOGIN_ENDPOINT, ADMIN_CREDS
-from custom_requester.custom_requester import CustomRequester
 from utils.data_generator import DataGenerator
-from api.api_manager import ApiManager
 
 faker = Faker()
 
@@ -28,20 +23,19 @@ def movie_test_data():
     }
 
 @pytest.fixture(scope="function")
-def created_movie(api_manager, authenticated_admin, movie_test_data):
+def created_movie(super_admin, movie_test_data):
     payload = movie_test_data
-    resp = api_manager.movies_api.create_movie(payload)
+    resp = super_admin.api_manager.movies_api.create_movie(payload)
     data = resp.json()
     created_movie_ids.append(data["id"])
     return data
 
 
 @pytest.fixture(scope="session", autouse=True)
-def clean_up_created_movies(api_manager):
+def clean_up_created_movies(super_admin):
     yield
 
-    api_manager.auth_api.authenticate(ADMIN_CREDS)
-
-    for movie_id in created_movie_ids:
-        api_manager.movies_api.clean_up_movie(movie_id)
+    if created_movie_ids:
+        for movie_id in created_movie_ids:
+            super_admin.api_manager.movies_api.clean_up_movie(movie_id)
 

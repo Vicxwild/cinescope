@@ -23,17 +23,18 @@ class DataGenerator:
         - Длина от 8 до 20 символов.
         """
         # Гарантируем наличие хотя бы одной буквы и одной цифры
-        letters = random.choice(string.ascii_letters)  # Одна буква
+        letter_lc = random.choice(string.ascii_lowercase)  # Одна буква в нижнем регистре
+        letters_uc = random.choice(string.ascii_uppercase)  # Одна буква в верхнем регистре
         digits = random.choice(string.digits)  # Одна цифра
 
         # Дополняем пароль случайными символами из допустимого набора
         special_chars = "?@#$%^&*|:"
         all_chars = string.ascii_letters + string.digits + special_chars
-        remaining_length = random.randint(6, 18)  # Остальная длина пароля
+        remaining_length = random.randint(6, 17)  # Остальная длина пароля
         remaining_chars = ''.join(random.choices(all_chars, k=remaining_length))
 
         # Перемешиваем пароль для рандомизации
-        password = list(letters + digits + remaining_chars)
+        password = list(letters_uc + letter_lc + digits + remaining_chars)
         random.shuffle(password)
 
         return ''.join(password)
@@ -45,3 +46,7 @@ class DataGenerator:
     @staticmethod
     def generate_random_film_description():
         return faker.text(max_nb_chars=50)
+
+    @staticmethod
+    def generate_random_str(chars: int):
+        return ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(chars))
