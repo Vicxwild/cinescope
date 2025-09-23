@@ -28,3 +28,6 @@ Thumbs.db
 
 # Отчеты allure
 allure-results/
+
+# ui debug trace
+files/playwright_trace

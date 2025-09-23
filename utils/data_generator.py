@@ -14,6 +14,10 @@ class DataGenerator:
         return f"{faker.first_name()} {faker.last_name()}"
 
     @staticmethod
+    def generate_random_fio():
+        return f"{faker.first_name()} {faker.last_name()} {faker.first_name()}"
+
+    @staticmethod
     def generate_random_password():
         """
         Генерация пароля, соответствующего требованиям:
