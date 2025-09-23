@@ -11,6 +11,9 @@ REGISTER_ENDPOINT = "/register"
 CINESCOPE_URL="https://api.dev-cinescope.coconutqa.ru"
 MOVIES = "/movies"
 
+# UI endpoints
+UI_BASE_URL = 'https://dev-cinescope.coconutqa.ru/'
+
 # logger colors
 GREEN = '\033[32m'
 RED = '\033[31m'

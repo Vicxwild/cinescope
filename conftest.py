@@ -3,6 +3,7 @@ import time
 from faker import Faker
 import pytest
 import requests
+from requests import session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from utils.data_generator import DataGenerator
@@ -12,10 +13,14 @@ from resources.db_creds import DBCreds
 from entities.user import User
 from constants.roles import Roles
 from models.base_models import TestUser
+from playwright.sync_api import sync_playwright
+from tools.tools import Tools
 
 faker = Faker()
 
 created_user_ids = []
+
+DEFAULT_UI_TIMEOUT = 3000
 
 @pytest.fixture(scope="function")
 def test_user():
@@ -58,12 +63,26 @@ def registered_user(unauthenticated_user, registration_user_data: TestUser) -> T
 
 
 @pytest.fixture(scope="session", autouse=True)
-def cleanup_created_users(super_admin):
+def cleanup_created_users():
     yield
 
     if created_user_ids:
+        new_session = requests.Session()
+        api_manager = ApiManager(new_session)
+
+        super_admin = User(
+            SuperAdminCreds.USERNAME,
+            SuperAdminCreds.PASSWORD,
+            list(Roles.SUPER_ADMIN.value),
+            api_manager
+        )
+
+        super_admin.api_manager.auth_api.authenticate(super_admin.creds)
+
         for user_id in created_user_ids:
             super_admin.api_manager.user_api.clean_up_user(user_id)
+
+        new_session.close()
 
 
 @pytest.fixture(scope="session")
@@ -169,3 +188,26 @@ def db_session():
 def delay_between_retries():
     time.sleep(2)
     yield
+
+@pytest.fixture(scope="session")
+def browser(playwright):
+    browser = playwright.chromium.launch(headless=False)
+    yield browser
+    browser.close()
+
+@pytest.fixture(scope="function")
+def context(browser):
+    context = browser.new_context()
+    context.tracing.start(screenshots=True, snapshots=True, sources=True)
+    context.set_default_timeout(DEFAULT_UI_TIMEOUT)
+    yield context
+    log_name = f"trace_{Tools.get_timestamp()}.zip"
+    trace_path = Tools.files_dir('playwright_trace', log_name)
+    context.tracing.stop(path=trace_path)
+    context.close()
+
+@pytest.fixture(scope="function")
+def page(context):
+    page = context.new_page()
+    yield page
+    page.close()

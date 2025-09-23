@@ -1,3 +1,5 @@
+# docker run -it --rm -p 8080:8080 --name wiremock wiremock/wiremock:3.12.0
+
 from tests.api.test_mock_services.test_without_mocks_0 import DateTimeRequest, WhatIsTodayResponse, \
     get_worldclockap_time, WorldClockResponse
 import requests
