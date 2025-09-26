@@ -1,7 +1,8 @@
+from models.login_user_response import LoginUserResponse
 from utils.data_generator import DataGenerator
 import pytest
-from models.base_models import RegisterUserResponse, LoginUserResponse
-from db_requester.models import UserDBModel
+from models.register_user_response import RegisterUserResponse
+from db_models.user import UserDBModel
 from constants.roles import Roles
 import datetime
 import allure

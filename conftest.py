@@ -9,12 +9,11 @@ from sqlalchemy.orm import sessionmaker
 from utils.data_generator import DataGenerator
 from api.api_manager import ApiManager
 from resources.user_creds import SuperAdminCreds
-from resources.db_creds import DBCreds
 from entities.user import User
 from constants.roles import Roles
-from models.base_models import TestUser
-from playwright.sync_api import sync_playwright
+from models.test_user_model import TestUserModel
 from tools.tools import Tools
+from db_requester.db_client import get_db_session
 
 faker = Faker()
 
@@ -38,21 +37,21 @@ def test_user():
     }
 
 @pytest.fixture(scope="function")
-def registration_user_data(test_user: dict) -> TestUser:
-    return TestUser(**test_user)
+def registration_user_data(test_user: dict) -> TestUserModel:
+    return TestUserModel(**test_user)
 
 @pytest.fixture(scope="function")
-def creation_user_data(test_user: dict) -> TestUser:
+def creation_user_data(test_user: dict) -> TestUserModel:
     updated_data = test_user.copy()
     updated_data.update({
         "verified": True,
         "banned": False
     })
 
-    return TestUser(**updated_data)
+    return TestUserModel(**updated_data)
 
 @pytest.fixture(scope="function")
-def registered_user(unauthenticated_user, registration_user_data: TestUser) -> TestUser:
+def registered_user(unauthenticated_user, registration_user_data: TestUserModel) -> TestUserModel:
     response = unauthenticated_user.api_manager.auth_api.register_user(registration_user_data)
     response_data = response.json()
 
@@ -171,16 +170,9 @@ def admin(user_session, super_admin):
     admin.api_manager.auth_api.authenticate(admin.creds)
     return admin
 
-# Создаем движок (engine) для подключения к базе данных
-engine = create_engine(
-    f"postgresql+psycopg2://{DBCreds.USERNAME}:{DBCreds.PASSWORD}"
-    f"@{DBCreds.HOST}:{DBCreds.PORT}/{DBCreds.NAME}"
-)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
 @pytest.fixture(scope="module")
 def db_session():
-    db_session = SessionLocal()
+    db_session = get_db_session()
     yield db_session
     db_session.close()
 

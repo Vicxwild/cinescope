@@ -1,5 +1,5 @@
 import pytest
-from models.base_models import RegisterUserResponse
+from models.register_user_response import RegisterUserResponse
 
 @pytest.mark.api
 class TestUser:
