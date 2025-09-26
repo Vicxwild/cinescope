@@ -1,6 +1,6 @@
 from constants.constants import REGISTER_ENDPOINT, LOGIN_ENDPOINT, BASE_URL
 from custom_requester.custom_requester import CustomRequester
-from models.base_models import TestUser
+from models.test_user_model import TestUserModel
 
 class AuthAPI(CustomRequester):
     # Клас для работы с аутентификацией
@@ -10,7 +10,7 @@ class AuthAPI(CustomRequester):
     def __init__(self, session):
         super().__init__(session=session, base_url=BASE_URL)
 
-    def register_user(self, user_data: dict | TestUser, expected_status=201):
+    def register_user(self, user_data: dict | TestUserModel, expected_status=201):
         return self.send_request(
             method="POST",
             endpoint=REGISTER_ENDPOINT,
@@ -18,7 +18,7 @@ class AuthAPI(CustomRequester):
             expected_status=expected_status
         )
 
-    def login_user(self, login_data: dict | TestUser, expected_status=(200, 201)):
+    def login_user(self, login_data: dict | TestUserModel, expected_status=(200, 201)):
         return self.send_request(
             method="POST",
             endpoint=LOGIN_ENDPOINT,

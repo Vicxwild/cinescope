@@ -1,15 +1,15 @@
 from sqlalchemy import create_engine, Column, String, Boolean, DateTime, text, Integer
 from sqlalchemy.orm import declarative_base, sessionmaker
+from resources.db_creds import MoviesDbCreds
 
-# Подключение к базе данных
-host = "80.90.191.123"
-port = 31200
-database_name = "db_movies"
-username = "postgres"
-password = "AmwFrtnR2"
+USERNAME = MoviesDbCreds.USERNAME
+PASSWORD = MoviesDbCreds.PASSWORD
+HOST = MoviesDbCreds.HOST
+PORT = MoviesDbCreds.PORT
+DATABASE_NAME = MoviesDbCreds.DATABASE_NAME
 
 #формируем урл для подключения к базе
-connection_string = f"postgresql+psycopg2://{username}:{password}@{host}:{port}/{database_name}"
+connection_string = f"postgresql+psycopg2://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DATABASE_NAME}"
 #обьект для подключения к базе данных
 engine = create_engine(connection_string)
 

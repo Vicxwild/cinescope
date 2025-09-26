@@ -1,7 +1,8 @@
 from faker import Faker
 from tests.api.helpers import get_id
 import pytest
-from db_requester.models import MovieDBModel
+from db_models.movie import MovieDBModel
+from db_requester.db_helpers import DBHelper
 
 faker = Faker()
 
@@ -11,14 +12,16 @@ class TestDelete:
     def test_delete_movie(self, super_admin, created_movie, db_session):
         movie_id = get_id(created_movie)
 
-        movie_from_db = db_session.query(MovieDBModel).filter_by(id=movie_id).first()
+        db_helper = DBHelper(db_session)
+
+        movie_from_db = db_helper.get_movie_by_id(movie_id)
         assert movie_from_db is not None
         assert movie_from_db.name == created_movie["name"]
 
         delete_resp = super_admin.api_manager.movies_api.delete_movie(movie_id, expected_status=200)
         assert delete_resp.status_code == 200
 
-        movie_from_db = db_session.query(MovieDBModel).filter_by(id=movie_id).first()
+        movie_from_db = db_helper.get_movie_by_id(movie_id)
         assert movie_from_db is None
 
     @pytest.mark.slow

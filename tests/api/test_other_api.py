@@ -1,5 +1,6 @@
-from db_requester.models import AccountTransactionTemplate
+from db_models.account_transaction_template import AccountTransactionTemplate
 from utils.data_generator import DataGenerator
+from utils.asserts import Asserts
 import pytest
 import allure
 import random
@@ -50,16 +51,16 @@ class TestOtherAPI:
                 session.commit()
 
         with allure.step("Проверяем начальные балансы"):
-            assert stan.balance == 1000
-            assert bob.balance == 500
+            Asserts.assert_equal(1000, stan.balance)
+            Asserts.assert_equal(500, bob.balance)
 
         try:
             with allure.step("Выполняем перевод 200 единиц от stan к bob"):
                 transfer_money(db_session, from_account=stan.user, to_account=bob.user, amount=200)
 
             with allure.step("Проверяем, что балансы изменились"):
-                assert stan.balance == 800
-                assert bob.balance == 700
+                Asserts.assert_equal(800, stan.balance)
+                Asserts.assert_equal(700, bob.balance)
 
         except Exception as e:
             with allure.step("ОШИБКА откаты транзакции"):
